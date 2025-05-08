@@ -141,7 +141,6 @@ class KnowledgeBase {
     }
 
     showSubtopicDetails(subtopic) {
-        // Similar to showTopicDetails but with subtopic-specific content
         const detailsContainer = document.createElement('div');
         detailsContainer.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4';
         
