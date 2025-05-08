@@ -3,6 +3,9 @@ class Chat {
         this.apiKey = localStorage.getItem('openai_api_key');
         this.knowledgeBase = null;
         this.conversationHistory = [];
+        this.totalInputTokens = 0;
+        this.totalOutputTokens = 0;
+        this.messageCount = 0;  // Track number of messages for average calculation
         this.initializeElements();
         this.attachEventListeners();
         this.loadKnowledgeBase();
@@ -116,16 +119,33 @@ class Chat {
             // Get response from GPT-4
             const response = await this.getGPTResponse(message, context);
 
+            // Update token counts from the usage field
+            if (response.usage) {
+                const inputTokens = response.usage.prompt_tokens || 0;
+                const outputTokens = response.usage.completion_tokens || 0;
+                this.totalInputTokens += inputTokens;
+                this.totalOutputTokens += outputTokens;
+                this.messageCount++;  // Increment message count for average calculation
+            }
+
+            // Extract the actual message content from the response
+            const messageContent = response.choices?.[0]?.message?.content || 'No response content found';
+
             // Add assistant response to conversation history and chat
-            this.conversationHistory.push({ role: 'assistant', content: response });
-            this.addMessageToChat('assistant', response);
+            this.conversationHistory.push({ role: 'assistant', content: messageContent });
+            this.addMessageToChat('assistant', messageContent, {
+                input: response.usage?.prompt_tokens || 0,
+                output: response.usage?.completion_tokens || 0
+            });
 
             // Keep only the last 10 messages
             if (this.conversationHistory.length > 10) {
                 this.conversationHistory = this.conversationHistory.slice(-10);
+                // Update message count to match truncated history
+                this.messageCount = Math.min(this.messageCount, 5);  // 5 user messages in 10 message history
             }
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Error in sendMessage:', error);
             this.addMessageToChat('error', 'Sorry, there was an error processing your message. Please try again.');
         } finally {
             // Remove loading state
@@ -209,10 +229,12 @@ ${context}`
         }
 
         const data = await response.json();
-        return data.choices[0].message.content;
+        console.log('API Response:', data);  // Log the full response
+        console.log('Usage data:', data.usage);  // Log usage specifically
+        return data;
     }
 
-    addMessageToChat(role, content) {
+    addMessageToChat(role, content, tokens = null) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `p-4 rounded-lg ${
             role === 'user' ? 'bg-blue-100 ml-8' :
@@ -225,8 +247,28 @@ ${context}`
         textContent.textContent = content;
         
         messageDiv.appendChild(textContent);
+
+        if (tokens) {
+            const tokenInfo = document.createElement('div');
+            tokenInfo.className = 'text-xs text-gray-500 mt-2';
+            tokenInfo.textContent = `Tokens: ${tokens.input} in / ${tokens.output} out`;
+            messageDiv.appendChild(tokenInfo);
+        }
+        
         this.chatMessages.appendChild(messageDiv);
         this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+        
+        // Update total tokens display if it exists
+        this.updateTotalTokens();
+    }
+
+    updateTotalTokens() {
+        const totalTokensElement = document.getElementById('total-tokens');
+        if (totalTokensElement) {
+            const avgInput = this.messageCount > 0 ? Math.round(this.totalInputTokens / this.messageCount) : 0;
+            const avgOutput = this.messageCount > 0 ? Math.round(this.totalOutputTokens / this.messageCount) : 0;
+            totalTokensElement.textContent = `Total Tokens: ${this.totalInputTokens} in / ${this.totalOutputTokens} out | Average per message: ${avgInput} in / ${avgOutput} out`;
+        }
     }
 }
 
