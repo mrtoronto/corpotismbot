@@ -4,6 +4,7 @@ class KnowledgeBase {
         this.data = null;
         this.currentTopic = null;
         this.isLoading = false;
+        this.expandedTopics = new Set();
     }
 
     async initialize() {
@@ -46,14 +47,19 @@ class KnowledgeBase {
 
     createTopicElement(topic, subtopics) {
         const div = document.createElement('div');
-        div.className = 'topic-card bg-gray-50 rounded-lg p-4 mb-4';
+        div.className = 'topic-card bg-gray-50 rounded-lg mb-4';
         
         const content = `
-            <div class="cursor-pointer" data-topic-id="${topic.id}">
-                <h3 class="text-lg font-semibold text-gray-900 mb-2">${this.escapeHtml(topic.title)}</h3>
-                <p class="text-gray-600 text-sm mb-3">${this.escapeHtml(topic.metadata?.importance || '')}</p>
+            <div class="topic-header" data-topic-id="${topic.id}">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900">${this.escapeHtml(topic.title)}</h3>
+                    <p class="text-gray-600 text-sm">${this.escapeHtml(topic.metadata?.importance || '')}</p>
+                </div>
+                <svg class="expand-icon h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
             </div>
-            <div class="subtopic-list ml-4 space-y-2">
+            <div class="subtopic-list ml-4">
                 ${subtopics.map(subtopic => `
                     <div class="border-l-2 border-gray-200 pl-3 py-2 cursor-pointer hover:bg-gray-100 rounded"
                          data-subtopic-id="${subtopic.id}">
@@ -67,7 +73,30 @@ class KnowledgeBase {
         div.innerHTML = content;
         
         // Add click handlers
-        div.querySelector(`[data-topic-id="${topic.id}"]`).addEventListener('click', () => {
+        const topicHeader = div.querySelector('.topic-header');
+        const subtopicList = div.querySelector('.subtopic-list');
+        const expandIcon = div.querySelector('.expand-icon');
+        
+        topicHeader.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const topicId = topicHeader.dataset.topicId;
+            
+            // Toggle expanded state
+            if (this.expandedTopics.has(topicId)) {
+                this.expandedTopics.delete(topicId);
+                div.classList.remove('active');
+                subtopicList.classList.remove('expanded');
+                expandIcon.classList.remove('rotated');
+            } else {
+                this.expandedTopics.add(topicId);
+                div.classList.add('active');
+                subtopicList.classList.add('expanded');
+                expandIcon.classList.add('rotated');
+            }
+        });
+        
+        // Add click handlers for topic and subtopic details
+        topicHeader.addEventListener('dblclick', () => {
             this.showTopicDetails(topic);
         });
         

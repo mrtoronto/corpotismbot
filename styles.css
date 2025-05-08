@@ -15,7 +15,7 @@
     transition: max-height 0.3s ease-out;
 }
 
-.topic-card:hover .subtopic-list {
+.subtopic-list.expanded {
     max-height: 1000px;
 }
 
@@ -52,6 +52,32 @@ html {
 
 .loading-pulse {
     animation: pulse 1.5s infinite;
+}
+
+/* Topic card active state */
+.topic-card.active {
+    border-color: #93c5fd;
+    background-color: #f0f7ff;
+}
+
+.topic-header {
+    cursor: pointer;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.topic-header:hover {
+    background-color: #f8fafc;
+}
+
+.expand-icon {
+    transition: transform 0.3s ease;
+}
+
+.expand-icon.rotated {
+    transform: rotate(180deg);
 }
 
 /* Mobile responsiveness improvements */
