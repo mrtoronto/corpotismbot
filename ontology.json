@@ -1,0 +1,86 @@
+[
+  {
+    "name": "Communication Fundamentals",
+    "subtopics": [
+      {
+        "name": "Verbal Communication",
+        "subtopics": [
+          { "name": "Tone of Voice", "subtopics": [] },
+          { "name": "Clarity and Conciseness", "subtopics": [] },
+          { "name": "Asking and Answering Questions", "subtopics": [] }
+        ]
+      },
+      {
+        "name": "Nonverbal Communication",
+        "subtopics": [
+          { "name": "Body Language", "subtopics": [] },
+          { "name": "Eye Contact", "subtopics": [] },
+          { "name": "Facial Expressions", "subtopics": [] },
+          { "name": "Personal Space", "subtopics": [] }
+        ]
+      },
+      {
+        "name": "Written Communication",
+        "subtopics": [
+          { "name": "Email Etiquette", "subtopics": [] },
+          { "name": "Instant Messaging", "subtopics": [] },
+          { "name": "Reports and Documentation", "subtopics": [] }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Social Interactions at Work",
+    "subtopics": [
+      { "name": "Small Talk and Informal Conversations", "subtopics": [] },
+      { "name": "Building Professional Relationships", "subtopics": [] },
+      { "name": "Networking", "subtopics": [] },
+      { "name": "Teamwork and Collaboration", "subtopics": [] },
+      { "name": "Participating in Meetings", "subtopics": [] }
+    ]
+  },
+  {
+    "name": "Navigating the Corporate Environment",
+    "subtopics": [
+      { "name": "Understanding Workplace Hierarchies", "subtopics": [] },
+      { "name": "Company Culture and Norms", "subtopics": [] },
+      { "name": "Unwritten Rules", "subtopics": [] },
+      { "name": "Office Politics", "subtopics": [] }
+    ]
+  },
+  {
+    "name": "Self-Advocacy and Disclosure",
+    "subtopics": [
+      { "name": "Disclosing Autism at Work", "subtopics": [] },
+      { "name": "Requesting Accommodations", "subtopics": [] },
+      { "name": "Setting Boundaries", "subtopics": [] },
+      { "name": "Managing Sensory Needs", "subtopics": [] }
+    ]
+  },
+  {
+    "name": "Handling Challenges",
+    "subtopics": [
+      { "name": "Dealing with Misunderstandings", "subtopics": [] },
+      { "name": "Conflict Resolution", "subtopics": [] },
+      { "name": "Coping with Stress and Overwhelm", "subtopics": [] },
+      { "name": "Feedback and Criticism", "subtopics": [] }
+    ]
+  },
+  {
+    "name": "Career Development",
+    "subtopics": [
+      { "name": "Goal Setting", "subtopics": [] },
+      { "name": "Professional Growth", "subtopics": [] },
+      { "name": "Mentorship", "subtopics": [] },
+      { "name": "Performance Reviews", "subtopics": [] }
+    ]
+  },
+  {
+    "name": "Resources and Support",
+    "subtopics": [
+      { "name": "Employee Assistance Programs", "subtopics": [] },
+      { "name": "Autism Support Networks", "subtopics": [] },
+      { "name": "Legal Rights and Protections", "subtopics": [] }
+    ]
+  }
+] 

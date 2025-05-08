@@ -1,0 +1,66 @@
+/* Custom styles for the knowledge base */
+.topic-card {
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.topic-card:hover {
+    border-color: #e5e7eb;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.subtopic-list {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.topic-card:hover .subtopic-list {
+    max-height: 1000px;
+}
+
+/* Smooth scrolling for the whole page */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Loading animation */
+@keyframes pulse {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
+}
+
+.loading-pulse {
+    animation: pulse 1.5s infinite;
+}
+
+/* Mobile responsiveness improvements */
+@media (max-width: 768px) {
+    .topic-card {
+        margin-bottom: 1rem;
+    }
+    
+    .chat-container {
+        height: 400px;
+    }
+} 

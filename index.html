@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Corpotism Knowledge Base</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-white shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-gray-900">Corpotism Knowledge Base</h1>
+                <nav>
+                    <a href="#" class="text-gray-600 hover:text-gray-900 px-3 py-2">Topics</a>
+                    <a href="#" class="text-gray-600 hover:text-gray-900 px-3 py-2">Chat</a>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Topics Browser -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h2 class="text-xl font-semibold mb-4">Browse Topics</h2>
+                        <div id="topics-container" class="space-y-4">
+                            <!-- Topics will be loaded here dynamically -->
+                            <div class="animate-pulse">
+                                <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+                                <div class="space-y-3 mt-4">
+                                    <div class="h-4 bg-gray-200 rounded"></div>
+                                    <div class="h-4 bg-gray-200 rounded"></div>
+                                    <div class="h-4 bg-gray-200 rounded"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Interface -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-lg shadow h-full">
+                        <div class="p-6 border-b">
+                            <h2 class="text-xl font-semibold">Chat Assistant</h2>
+                        </div>
+                        <div class="chat-container flex flex-col">
+                            <div class="flex-1 p-6 overflow-y-auto">
+                                <!-- Chat messages will appear here -->
+                                <div class="text-center text-gray-500">
+                                    Chat functionality coming soon!
+                                </div>
+                            </div>
+                            <div class="border-t p-4">
+                                <div class="flex space-x-3">
+                                    <input type="text" placeholder="Type your message..." disabled
+                                        class="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm disabled:bg-gray-100"
+                                    >
+                                    <button disabled
+                                        class="bg-blue-500 text-white px-4 py-2 rounded-lg disabled:bg-blue-300"
+                                    >
+                                        Send
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html> 
