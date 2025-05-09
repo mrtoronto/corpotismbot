@@ -5,6 +5,7 @@ Corpotism Bot is deployed using:
 - Gunicorn as the WSGI server (running on port 5001)
 - Nginx as the reverse proxy (port 80)
 - Cloudflare for DNS and SSL
+- GitHub Actions for automated deployment
 
 ## Repository Structure
 ```
@@ -13,17 +14,75 @@ corpotismbot/
 ├── generate_content.py # Content generation logic
 ├── llm_utils.py       # LLM utilities
 ├── requirements.txt   # Python dependencies
+├── scripts/          # Deployment and maintenance scripts
+│   └── graceful_restart.sh  # Gunicorn process management
 ├── static/           # Static files served by Nginx
 └── templates/        # Flask templates
 ```
 
-## Production Server Configuration
+## Deployment Workflow
 
-The following files and configurations exist ONLY on the production server and are NOT tracked in the repository:
+The application uses GitHub Actions for automated deployment. The workflow is triggered on pushes to the main branch.
 
-### Server-Only Files
+### Workflow Steps:
+1. **Code Checkout**: Latest code is fetched from the repository
+2. **SSH Setup**: Configures SSH access to the production server
+3. **Static File Sync**: Uses rsync to ensure all static assets are up to date
+4. **Code Deployment**: Pulls latest changes and updates dependencies
+5. **Application Restart**: Gracefully restarts the Gunicorn process
 
-1. **Nginx Configuration** (`/etc/nginx/sites-available/corpotismbot`):
+### Key Files
+
+1. **GitHub Actions Workflow** (`.github/workflows/deploy.yml`):
+```yaml
+name: Deploy to Production
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_KEY }}
+      - name: Deploy to server
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          USERNAME: ${{ secrets.DEPLOY_USER }}
+        run: |
+          # Sync static files and deploy
+          rsync -av --delete static/ $USERNAME@$HOST:/home/matt/corpotismbot/static/
+          ssh $USERNAME@$HOST "
+            cd /home/matt/corpotismbot &&
+            git pull origin main &&
+            source venv/bin/activate &&
+            pip install -r requirements.txt &&
+            ./scripts/graceful_restart.sh
+          "
+```
+
+2. **Graceful Restart Script** (`scripts/graceful_restart.sh`):
+```bash
+#!/bin/bash
+# Manages Gunicorn process restart/reload
+OLD_PID=$(pgrep -f "gunicorn.*app:app")
+
+if [ ! -z "$OLD_PID" ]; then
+    kill -HUP $OLD_PID  # Graceful reload
+else
+    cd /home/matt/corpotismbot
+    source venv/bin/activate
+    gunicorn --workers 4 --bind 127.0.0.1:5001 app:app --daemon
+fi
+```
+
+3. **Nginx Configuration** (`/etc/nginx/sites-available/corpotismbot`):
 ```nginx
 server {
     listen 80;
@@ -36,95 +95,80 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
+
+    location /static/ {
+        alias /home/matt/corpotismbot/static/;
+    }
 }
 ```
 
-2. **Gunicorn Service** (`/etc/systemd/system/corpotismbot.service`):
-See [systemd.md](systemd.md) for the complete service configuration.
-
-3. **Virtual Environment**:
-```
-/home/matt/corpotismbot/venv/
-```
-
-### Cloudflare Configuration
-
-1. **DNS Settings**:
-   - A records for `corpotism.com` and `www.corpotism.com`
-   - Both pointing to server IP: `134.199.220.81`
-   - Proxy status: Enabled (orange cloud)
-
-2. **SSL/TLS Settings**:
-   - Encryption mode: Flexible
-   - SSL certificate provided by Cloudflare
-
 ## Initial Server Setup
 
-1. **Server Setup**:
+1. **Clone Repository and Setup Environment**:
    ```bash
-   # Install dependencies
-   sudo apt update
-   sudo apt install python3-venv nginx
-
-   # Clone repository
    git clone https://github.com/yourusername/corpotismbot.git
    cd corpotismbot
-
-   # Create and activate virtual environment
    python3 -m venv venv
    source venv/bin/activate
-
-   # Install Python packages
    pip install -r requirements.txt
    ```
 
-2. **Configure Nginx**:
+2. **Setup Deployment Scripts**:
    ```bash
-   # Create and edit Nginx config
-   sudo vim /etc/nginx/sites-available/corpotismbot
+   chmod +x scripts/graceful_restart.sh
+   ```
 
-   # Enable the site
+3. **Configure Nginx**:
+   ```bash
    sudo ln -s /etc/nginx/sites-available/corpotismbot /etc/nginx/sites-enabled/
    sudo nginx -t
    sudo systemctl restart nginx
    ```
 
-3. **Setup Systemd Service**:
+4. **Start Application**:
    ```bash
-   # Create service file
-   sudo vim /etc/systemd/system/corpotismbot.service
-   
-   # Enable and start service
-   sudo systemctl enable corpotismbot
-   sudo systemctl start corpotismbot
+   ./scripts/graceful_restart.sh
    ```
+
+## GitHub Repository Setup
+
+1. **Required Secrets**:
+   - `DEPLOY_KEY`: SSH private key for server access
+   - `DEPLOY_HOST`: Server hostname or IP
+   - `DEPLOY_USER`: SSH username for deployment
+
+2. **SSH Key Setup**:
+   - Generate deployment key pair: `ssh-keygen -t ed25519 -C "github-actions-deploy"`
+   - Add private key to GitHub repository secrets
+   - Add public key to server's `~/.ssh/authorized_keys`
 
 ## Troubleshooting
 
-1. **Check Gunicorn**:
+1. **Check Application Status**:
    ```bash
-   sudo systemctl status corpotismbot
-   sudo journalctl -u corpotismbot -n 50
+   pgrep -f "gunicorn.*app:app"  # Check if process is running
+   tail -f /var/log/nginx/error.log  # Check Nginx errors
    ```
 
-2. **Check Nginx**:
+2. **Manual Deployment**:
+   If GitHub Actions deployment fails, you can manually deploy:
    ```bash
-   sudo nginx -t
-   sudo systemctl status nginx
-   sudo tail -f /var/log/nginx/error.log
+   cd /home/matt/corpotismbot
+   git pull origin main
+   source venv/bin/activate
+   pip install -r requirements.txt
+   ./scripts/graceful_restart.sh
    ```
 
-3. **Check Connectivity**:
-   ```bash
-   # Test Gunicorn directly
-   curl -v http://127.0.0.1:5001
-   
-   # Test Nginx
-   curl -v http://134.199.220.81
-   ```
+3. **Common Issues**:
+   - **Static Files Not Updated**: Check rsync output in GitHub Actions logs
+   - **Application Not Restarting**: Check if graceful_restart.sh is executable
+   - **502 Bad Gateway**: Verify Gunicorn is running on port 5001
 
 ## Security Notes
 
-- Port 80 must be open in the firewall
-- Cloudflare handles SSL/TLS encryption
-- The application runs behind Nginx which provides an additional security layer 
+- The application runs without root privileges
+- Static file serving is handled by Nginx
+- Cloudflare provides SSL/TLS encryption
+- SSH keys are used for secure deployment
+- No direct systemd interaction required 

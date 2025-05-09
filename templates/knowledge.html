@@ -23,8 +23,18 @@
         <!-- Main Content -->
         <main class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
             <div class="bg-white rounded-lg shadow p-6">
-                <h2 class="text-xl font-semibold mb-4">Browse Topics</h2>
-                <div id="topics-container" class="space-y-4">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-semibold">Knowledge Base Topics</h2>
+                    <div class="flex space-x-2">
+                        <button id="expandAll" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">
+                            Expand All
+                        </button>
+                        <button id="collapseAll" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors">
+                            Collapse All
+                        </button>
+                    </div>
+                </div>
+                <div id="topics-container" class="space-y-6">
                     <!-- Topics will be loaded here dynamically -->
                     <div class="animate-pulse">
                         <div class="h-4 bg-gray-200 rounded w-3/4"></div>
