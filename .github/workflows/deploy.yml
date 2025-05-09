@@ -27,11 +27,14 @@ jobs:
           mkdir -p ~/.ssh
           echo "StrictHostKeyChecking no" >> ~/.ssh/config
           
-          # Deploy to server
+          # First sync any static files
+          rsync -av --delete static/ $USERNAME@$HOST:/home/matt/corpotismbot/static/
+          
+          # Then do the deployment and restart
           ssh $USERNAME@$HOST "
             cd /home/matt/corpotismbot &&
             git pull origin main &&
             source venv/bin/activate &&
             pip install -r requirements.txt &&
-            systemctl --user restart corpotismbot
+            ./scripts/graceful_restart.sh
           " 
