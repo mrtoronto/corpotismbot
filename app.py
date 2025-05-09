@@ -48,6 +48,10 @@ def chat():
 def knowledge():
     return render_template('knowledge.html')
 
+@app.route('/todo')
+def todo():
+    return render_template('todo.html')
+
 @app.route('/api/knowledge')
 def get_knowledge():
     try:
