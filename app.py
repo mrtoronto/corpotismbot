@@ -57,7 +57,6 @@ def chat():
     return render_template('chat.html')
 
 @app.route('/knowledge')
-@login_required
 def knowledge():
     return render_template('knowledge.html')
 
@@ -83,7 +82,6 @@ def logout():
     return redirect(url_for('index'))
 
 @app.route('/api/knowledge', methods=['GET', 'POST', 'PUT'])
-@login_required
 def get_knowledge():
     try:
         if request.method == 'GET':
