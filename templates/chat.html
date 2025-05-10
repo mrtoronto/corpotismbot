@@ -10,22 +10,40 @@
 {% block content %}
     <div class="min-h-screen">
         <!-- Main Content -->
-        <main class="max-w-3xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-            <div class="bg-white rounded-lg shadow">
-                <div class="p-6 border-b">
-                    <h2 class="text-xl font-semibold">Chat Assistant</h2>
-                </div>
-                <div class="chat-container flex flex-col h-[600px]">
-                    <div id="chat-messages" class="flex-1 p-6 overflow-y-auto space-y-4">
+        <main class="max-w-4xl mx-auto px-2 py-4 sm:px-6 lg:px-8">
+            <div class="bg-white rounded-lg shadow flex flex-col md:flex-row">
+                <!-- Sidebar for chat history -->
+                <aside class="w-full md:w-64 border-b md:border-b-0 md:border-r bg-gray-50 flex flex-col" id="sidebar">
+                    <div class="p-4 border-b flex items-center justify-between md:justify-between">
+                        <span class="font-semibold text-lg">Chats</span>
+                        <button id="toggle-sidebar" class="md:hidden text-gray-600 focus:outline-none" aria-label="Toggle chat list">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                            </svg>
+                        </button>
+                        <button id="new-chat-btn" class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-xs ml-2">New</button>
+                    </div>
+                    <ul id="chat-list" class="flex-1 overflow-y-auto p-2 space-y-1">
+                        <!-- Chat GUIDs will be rendered here -->
+                    </ul>
+                </aside>
+                <!-- Chat area -->
+                <div class="flex-1 flex flex-col h-[600px] min-h-[400px]">
+                    <!-- Chat header -->
+                    <div class="flex items-center justify-between border-b px-3 sm:px-6 py-2 sm:py-3 bg-gray-50">
+                        <div class="font-mono text-xs text-gray-600 truncate" id="current-chat-guid">Chat: </div>
+                        <button id="delete-chat-btn" class="text-red-500 hover:text-red-700 text-xs px-2 py-1 rounded border border-red-200 bg-red-50">Delete</button>
+                    </div>
+                    <div id="chat-messages" class="flex-1 p-2 sm:p-6 overflow-y-auto space-y-4">
                         <div class="text-center text-gray-500" id="welcome-message">
                             Enter your OpenAI API key to start chatting!
                         </div>
                     </div>
-                    <div class="border-t p-4">
+                    <div class="border-t p-2 sm:p-4">
                         <div class="text-sm text-gray-500 mb-2 flex flex-wrap gap-2" id="total-tokens">
                             Total Tokens: 0 in / 0 out | Average per message: 0 in / 0 out
                         </div>
-                        <div class="flex space-x-3 mb-4">
+                        <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 mb-4">
                             <input type="text" id="chat-input" placeholder="Type your message..."
                                 class="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm"
                             >
@@ -40,7 +58,7 @@
                             </button>
                         </div>
                         <div id="api-key-section" class="mt-4">
-                            <div class="flex items-center space-x-2">
+                            <div class="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
                                 <input type="password" id="api-key-input" placeholder="Enter OpenAI API Key" 
                                     class="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm">
                                 <button id="save-api-key" 
@@ -61,4 +79,26 @@
 
 {% block scripts %}
     <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+    <script>
+    // Mobile sidebar toggle
+    document.addEventListener('DOMContentLoaded', function() {
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('toggle-sidebar');
+        if (toggleBtn && sidebar) {
+            toggleBtn.addEventListener('click', function() {
+                sidebar.classList.toggle('hidden');
+            });
+        }
+        // Hide sidebar by default on mobile
+        function handleResize() {
+            if (window.innerWidth < 768) {
+                sidebar.classList.add('hidden');
+            } else {
+                sidebar.classList.remove('hidden');
+            }
+        }
+        window.addEventListener('resize', handleResize);
+        handleResize();
+    });
+    </script>
 {% endblock %} 
