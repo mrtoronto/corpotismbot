@@ -27,9 +27,6 @@ jobs:
           mkdir -p ~/.ssh
           echo "StrictHostKeyChecking no" >> ~/.ssh/config
           
-          # First sync any static files
-          rsync -av --delete static/ $USERNAME@$HOST:/home/matt/corpotismbot/static/
-          
           # Then do the deployment and restart
           ssh $USERNAME@$HOST "
             cd /home/matt/corpotismbot &&
