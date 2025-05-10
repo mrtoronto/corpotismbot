@@ -34,10 +34,14 @@ jobs:
             git clean -fd &&
             git pull origin main &&
             
-            # Install Poetry if not present
+            # Install Poetry if not present and add to PATH
             if ! command -v poetry &> /dev/null; then
-              curl -sSL https://install.python-poetry.org | python3 -
+              curl -sSL https://install.python-poetry.org | python3 - &&
+              export PATH=\"/home/matt/.local/bin:\$PATH\"
             fi
+            
+            # Ensure poetry is in PATH for this session
+            export PATH=\"/home/matt/.local/bin:\$PATH\"
             
             # Configure Poetry to use venv in project directory
             poetry config virtualenvs.in-project true --local
