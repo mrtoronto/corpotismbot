@@ -46,8 +46,11 @@ jobs:
             # Configure Poetry to use venv in project directory
             poetry config virtualenvs.in-project true --local
             
-            # Install dependencies with memory optimizations
-            PYTHONMALLOC=debug poetry install --only main --no-interaction --no-ansi &&
+            # Install basic dependencies first
+            poetry install --only main --no-interaction --no-ansi --without torch,kokoro &&
+            
+            # Then install ML dependencies
+            poetry install --only main --no-interaction --no-ansi &&
             
             # Restart service
             ./scripts/graceful_restart.sh

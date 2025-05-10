@@ -10,9 +10,15 @@ flask = "3.0.2"
 werkzeug = "3.0.1"
 httpx = "0.28.1"
 flask-login = "0.6.3"
-kokoro = {version = "^0.9.4", extras = ["cpu"]}
+kokoro = {version = "^0.9.4", extras = ["cpu"], platform = "linux"}
+torch = {version = "^2.0.0", source = "torch-cpu"}
 soundfile = "*"
 gunicorn = "^21.2.0"
+
+[[tool.poetry.source]]
+name = "torch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+priority = "explicit"
 
 [tool.poetry.group.dev.dependencies]
 # Development dependencies here
