@@ -9,8 +9,7 @@ if [ ! -z "$OLD_PID" ]; then
 else
     echo "No existing Gunicorn process found, starting new one..."
     cd /home/matt/corpotismbot
-    source venv/bin/activate
-    gunicorn --workers 4 --bind 127.0.0.1:5001 app:app --daemon
+    poetry run gunicorn --workers 4 --bind 127.0.0.1:5001 app:app --daemon
 fi
 
 # Wait for new workers to start
