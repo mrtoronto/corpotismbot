@@ -33,7 +33,10 @@
     <!-- Navigation -->
     <header class="bg-white shadow-sm">
         <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
-            <a href="{{ url_for('index') }}" class="text-2xl font-bold text-gray-900">Corpotism</a>
+            <div class="flex items-center">
+                <img src="{{ url_for('static', filename='favicon.png') }}" alt="Logo" class="h-10 w-10 rounded-full mr-3" />
+                <a href="{{ url_for('index') }}" class="text-2xl font-bold text-gray-900">Corpotism</a>
+            </div>
             <!-- Hamburger button for mobile -->
             <button id="mobile-menu-button" class="md:hidden text-gray-600 hover:text-gray-900 focus:outline-none" aria-label="Open menu">
                 <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

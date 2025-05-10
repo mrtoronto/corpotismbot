@@ -14,6 +14,7 @@ class Chat {
         this.apiKeyInput = document.getElementById('api-key-input');
         this.apiKeyStatus = document.getElementById('api-key-status');
         this.saveApiKeyBtn = document.getElementById('save-api-key');
+        this.apiKeySection = document.getElementById('api-key-section');
         this.chatInput = document.getElementById('chat-input');
         this.sendMessageBtn = document.getElementById('send-message');
         this.sendText = document.getElementById('send-text');
@@ -26,6 +27,9 @@ class Chat {
             this.apiKeyInput.value = '********';
             this.apiKeyStatus.textContent = 'API key saved';
             this.apiKeyStatus.className = 'text-sm mt-2 text-green-500';
+            this.apiKeySection.style.display = 'none';
+        } else {
+            this.apiKeySection.style.display = '';
         }
     }
 
@@ -44,6 +48,9 @@ class Chat {
         
         if (hasApiKey) {
             this.welcomeMessage.textContent = "Ask me anything about the topics in the knowledge base!";
+            if (this.apiKeySection) this.apiKeySection.style.display = 'none';
+        } else {
+            if (this.apiKeySection) this.apiKeySection.style.display = '';
         }
     }
 
@@ -60,6 +67,7 @@ class Chat {
         this.apiKeyInput.value = '********';
         this.apiKeyStatus.textContent = 'API key saved';
         this.apiKeyStatus.className = 'text-sm mt-2 text-green-500';
+        if (this.apiKeySection) this.apiKeySection.style.display = 'none';
         this.updateUIState();
     }
 
@@ -150,10 +158,12 @@ class Chat {
         const messageContent = role === 'error' 
             ? `<div class="bg-red-50 text-red-700 p-3 rounded-lg">${content}</div>`
             : `<div class="flex items-start">
-                <div class="flex-shrink-0 ${role === 'user' ? 'bg-blue-500' : 'bg-green-500'} text-white p-2 rounded-full">
-                    ${role === 'user' ? 'You' : 'AI'}
+                <div class="flex-shrink-0">
+                    ${role === 'user' 
+                        ? '<div class="bg-blue-500 text-white p-2 rounded-full">You</div>' 
+                        : '<img src="/static/favicon.png" alt="AI" class="w-10 h-10 rounded-full border border-gray-200" />'}
                 </div>
-                <div class="ml-3 bg-white p-3 rounded-lg shadow-sm">
+                <div class="ml-3 p-3 rounded-lg shadow-sm ${role === 'assistant' ? 'bg-blue-50' : 'bg-white'}">
                     ${this.formatMessage(content)}
                 </div>
                </div>`;
