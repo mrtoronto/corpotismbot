@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}{{ topic.title }} - Knowledge Base{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Breadcrumb -->
+        <nav class="mb-8 text-sm">
+            <a href="{{ url_for('knowledge') }}" class="text-blue-500 hover:text-blue-700">Knowledge Base</a>
+            {% if parent %}
+            <span class="mx-2">›</span>
+            <a href="{{ url_for('view_topic', topic_id=parent.id) }}" class="text-blue-500 hover:text-blue-700">{{ parent.title }}</a>
+            {% endif %}
+            <span class="mx-2">›</span>
+            <span class="text-gray-600">{{ topic.title }}</span>
+        </nav>
+
+        <!-- Topic Header -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">{{ topic.title }}</h1>
+                    <p class="text-gray-500 mt-2">{{ topic.category }}</p>
+                    {% if topic.metadata.get('importance') %}
+                    <p class="text-lg text-gray-700 mt-4">{{ topic.metadata.importance }}</p>
+                    {% endif %}
+                </div>
+                {% if session.get('logged_in') %}
+                <a href="{{ url_for('edit_knowledge_item', topic_id=topic.id) }}" 
+                   class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Edit Topic
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Topic Content -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            {% if topic.metadata.get('relation_to_parent') %}
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-3">Relation to Parent Topic</h2>
+                <p class="text-gray-700">{{ topic.metadata.relation_to_parent }}</p>
+            </div>
+            {% endif %}
+
+            {% if topic.metadata.get('challenges') %}
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-3">Key Challenges</h2>
+                <ul class="list-disc list-inside text-gray-700 space-y-2">
+                    {% for challenge in topic.metadata.challenges %}
+                    <li>{{ challenge }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            {% if topic.metadata.get('strategies') %}
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-3">Strategies</h2>
+                <ul class="list-disc list-inside text-gray-700 space-y-2">
+                    {% for strategy in topic.metadata.strategies %}
+                    <li>{{ strategy }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            {% if topic.metadata.get('examples') %}
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-3">Examples</h2>
+                <ul class="list-disc list-inside text-gray-700 space-y-2">
+                    {% for example in topic.metadata.examples %}
+                    <li>{{ example }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            {% if topic.metadata.get('action_steps') %}
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-3">Action Steps</h2>
+                <ul class="list-disc list-inside text-gray-700 space-y-2">
+                    {% for step in topic.metadata.action_steps %}
+                    <li>{{ step }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            {% if not topic.metadata.get('importance') and not topic.metadata.get('relation_to_parent') 
+                  and not topic.metadata.get('challenges') and not topic.metadata.get('strategies') 
+                  and not topic.metadata.get('examples') and not topic.metadata.get('action_steps') %}
+            <div class="text-center text-gray-500 py-8">
+                <p>No additional information available for this topic.</p>
+                {% if session.get('logged_in') %}
+                <p class="mt-2">
+                    <a href="{{ url_for('edit_knowledge_item', topic_id=topic.id) }}" 
+                       class="text-blue-500 hover:text-blue-700">
+                        Add information
+                    </a>
+                </p>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Related Topics -->
+        {% if children %}
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Subtopics</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for child in children %}
+                <a href="{{ url_for('view_topic', topic_id=child.id) }}" 
+                   class="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                    <h3 class="font-semibold text-gray-900">{{ child.title }}</h3>
+                    {% if child.metadata.get('importance') %}
+                    <p class="text-sm text-gray-600 mt-1">{{ child.metadata.importance }}</p>
+                    {% endif %}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

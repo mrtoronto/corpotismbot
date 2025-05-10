@@ -224,5 +224,34 @@ def generate_content():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/topic/<topic_id>')
+def view_topic(topic_id):
+    try:
+        kb_data = load_knowledge_base()
+        topic = next((t for t in kb_data if t['id'] == topic_id), None)
+        if not topic:
+            flash('Topic not found')
+            return redirect(url_for('knowledge'))
+            
+        # Ensure metadata exists
+        if 'metadata' not in topic:
+            topic['metadata'] = {}
+            
+        # Get parent topic if it exists
+        parent = next((t for t in kb_data if t['id'] == topic.get('parent_id')), None)
+        
+        # Get child topics
+        children = [t for t in kb_data if t.get('parent_id') == topic_id]
+        
+        # Ensure each child has metadata
+        for child in children:
+            if 'metadata' not in child:
+                child['metadata'] = {}
+        
+        return render_template('topic.html', topic=topic, parent=parent, children=children)
+    except Exception as e:
+        flash('Error loading topic')
+        return redirect(url_for('knowledge'))
+
 if __name__ == '__main__':
     app.run(debug=True, port=5001) 
