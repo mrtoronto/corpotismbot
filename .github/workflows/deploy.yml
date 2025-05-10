@@ -30,6 +30,8 @@ jobs:
           # Then do the deployment and restart
           ssh $USERNAME@$HOST "
             cd /home/matt/corpotismbot &&
+            git reset --hard HEAD &&
+            git clean -fd &&
             git pull origin main &&
             source venv/bin/activate &&
             pip install -r requirements.txt &&
