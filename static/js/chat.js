@@ -3,11 +3,56 @@ class Chat {
         this.apiKey = localStorage.getItem('openai_api_key');
         this.chats = this.loadChats(); // { guid: { messages: [], totalInputTokens, totalOutputTokens, messageCount } }
         this.currentChatId = this.loadCurrentChatId();
+        this.voices = {};
+        this.currentVoice = localStorage.getItem('selected_voice') || 'af_heart';
+        this.loadVoices();
         this.initializeElements();
         this.attachEventListeners();
         this.updateUIState();
         this.renderChatList();
         this.loadChatMessages();
+    }
+
+    async loadVoices() {
+        try {
+            const response = await fetch('/api/voices');
+            const data = await response.json();
+            this.voices = data.voices;
+            this.currentVoice = localStorage.getItem('selected_voice') || data.default;
+            this.updateVoiceSelector();
+        } catch (error) {
+            console.error('Error loading voices:', error);
+        }
+    }
+
+    updateVoiceSelector() {
+        const voiceSelector = document.getElementById('voice-selector');
+        if (!voiceSelector) return;
+
+        // Group voices by accent
+        const groupedVoices = Object.entries(this.voices).reduce((acc, [id, voice]) => {
+            const group = acc[voice.accent] || [];
+            group.push({ id, ...voice });
+            acc[voice.accent] = group;
+            return acc;
+        }, {});
+
+        // Create options with optgroups
+        voiceSelector.innerHTML = Object.entries(groupedVoices).map(([accent, voices]) => `
+            <optgroup label="${accent}">
+                ${voices.map(voice => `
+                    <option value="${voice.id}" ${this.currentVoice === voice.id ? 'selected' : ''}>
+                        ${voice.gender === 'F' ? '👩' : '👨'} ${voice.name}
+                    </option>
+                `).join('')}
+            </optgroup>
+        `).join('');
+
+        // Add change handler
+        voiceSelector.addEventListener('change', (e) => {
+            this.currentVoice = e.target.value;
+            localStorage.setItem('selected_voice', this.currentVoice);
+        });
     }
 
     initializeElements() {
@@ -35,6 +80,20 @@ class Chat {
         } else {
             this.apiKeySection.style.display = '';
         }
+
+        // Add voice selector initialization
+        const voiceSelectorContainer = document.createElement('div');
+        voiceSelectorContainer.className = 'flex items-center space-x-2 mt-2';
+        voiceSelectorContainer.innerHTML = `
+            <label for="voice-selector" class="text-sm text-gray-600">Voice:</label>
+            <select id="voice-selector" class="text-sm rounded-lg border border-gray-300 px-2 py-1">
+                <option value="af_heart">Loading voices...</option>
+            </select>
+        `;
+        
+        // Insert voice selector after the chat input
+        const chatInputContainer = this.chatInput.parentElement;
+        chatInputContainer.parentElement.insertBefore(voiceSelectorContainer, chatInputContainer.nextSibling);
     }
 
     attachEventListeners() {
@@ -281,6 +340,22 @@ class Chat {
     }
 
     addMessageToChat(role, content, tokens = null, scroll = true) {
+        // Add a style block for audio controls at the start of the method
+        if (!document.getElementById('audio-styles')) {
+            const styleSheet = document.createElement('style');
+            styleSheet.id = 'audio-styles';
+            styleSheet.textContent = `
+                @media (max-width: 768px) {
+                    /* Hide volume slider on mobile */
+                    audio::-webkit-media-controls-volume-slider,
+                    audio::-webkit-media-controls-mute-button {
+                        display: none !important;
+                    }
+                }
+            `;
+            document.head.appendChild(styleSheet);
+        }
+
         const messageDiv = document.createElement('div');
         messageDiv.className = 'mb-4';
         const messageContent = role === 'error' 
@@ -291,11 +366,87 @@ class Chat {
                         ? '<div class="bg-blue-500 text-white p-2 rounded-full">You</div>' 
                         : '<img src="/static/favicon.png" alt="AI" class="w-10 h-10 rounded-full border border-gray-200" />'}
                 </div>
-                <div class="ml-3 p-3 rounded-lg shadow-sm ${role === 'assistant' ? 'bg-blue-50' : 'bg-white'}">
-                    ${this.formatMessage(content)}
+                <div class="ml-3 flex-grow">
+                    <div class="p-3 rounded-lg shadow-sm ${role === 'assistant' ? 'bg-blue-50' : 'bg-white'}">
+                        <div class="mb-2">${this.formatMessage(content)}</div>
+                        ${role === 'assistant' ? `
+                            <div class="border-t pt-2 mt-2">
+                                <div class="flex flex-col space-y-2">
+                                    <button class="text-blue-500 hover:text-blue-700 text-sm flex items-center generate-tts w-fit" data-message="${encodeURIComponent(content)}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                        </svg>
+                                        Generate Voice
+                                    </button>
+                                    <div class="audio-container hidden">
+                                        <!-- Audio player will be inserted here -->
+                                    </div>
+                                    <div class="tts-loading hidden">
+                                        <svg class="animate-spin h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
                 </div>
                </div>`;
         messageDiv.innerHTML = messageContent;
+
+        // Add click handler for TTS button
+        if (role === 'assistant') {
+            const ttsButton = messageDiv.querySelector('.generate-tts');
+            const audioContainer = messageDiv.querySelector('.audio-container');
+            const loadingSpinner = messageDiv.querySelector('.tts-loading');
+            
+            ttsButton.addEventListener('click', async () => {
+                try {
+                    // Show loading spinner
+                    loadingSpinner.classList.remove('hidden');
+                    ttsButton.classList.add('hidden');
+                    
+                    // Get message content
+                    const messageText = decodeURIComponent(ttsButton.dataset.message);
+                    
+                    // Request TTS audio with selected voice
+                    const response = await fetch('/api/tts', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ 
+                            text: messageText,
+                            voice: this.currentVoice
+                        })
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to generate audio');
+                    
+                    // Get audio blob
+                    const audioBlob = await response.blob();
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    
+                    // Create audio player with mobile-specific class
+                    audioContainer.innerHTML = `
+                        <audio controls class="w-full max-w-md audio-player">
+                            <source src="${audioUrl}" type="audio/wav">
+                            Your browser does not support the audio element.
+                        </audio>
+                    `;
+                    audioContainer.classList.remove('hidden');
+                    
+                } catch (error) {
+                    console.error('Error generating TTS:', error);
+                    alert('Failed to generate audio. Please try again.');
+                    ttsButton.classList.remove('hidden');
+                } finally {
+                    loadingSpinner.classList.add('hidden');
+                }
+            });
+        }
+
         this.chatMessages.appendChild(messageDiv);
         if (scroll) {
             this.chatMessages.scrollTop = this.chatMessages.scrollHeight;

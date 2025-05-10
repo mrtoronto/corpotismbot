@@ -1,10 +1,49 @@
-from flask import Flask, render_template, jsonify, request, session, redirect, url_for, flash
+from flask import Flask, render_template, jsonify, request, session, redirect, url_for, flash, send_file
 import json
 import os
 import httpx
+import io
 from functools import wraps
 from config import SECRET_KEY, ADMIN_PASSWORD
 from prompts import get_autism_chat_assistant_prompt, get_content_generation_prompt, get_field_specific_prompt
+from kokoro import KPipeline
+import soundfile as sf
+import torch
+
+# Voice configuration
+VOICES = {
+    'af_alloy': {'name': 'Alloy', 'accent': 'American', 'gender': 'F'},
+    'af_aoede': {'name': 'Aoede', 'accent': 'American', 'gender': 'F'},
+    'af_bella': {'name': 'Bella', 'accent': 'American', 'gender': 'F'},
+    'af_heart': {'name': 'Heart', 'accent': 'American', 'gender': 'F'},
+    'af_jessica': {'name': 'Jessica', 'accent': 'American', 'gender': 'F'},
+    'af_kore': {'name': 'Kore', 'accent': 'American', 'gender': 'F'},
+    'af_nicole': {'name': 'Nicole', 'accent': 'American', 'gender': 'F'},
+    'af_nova': {'name': 'Nova', 'accent': 'American', 'gender': 'F'},
+    'af_river': {'name': 'River', 'accent': 'American', 'gender': 'F'},
+    'af_sarah': {'name': 'Sarah', 'accent': 'American', 'gender': 'F'},
+    'af_sky': {'name': 'Sky', 'accent': 'American', 'gender': 'F'},
+    'am_adam': {'name': 'Adam', 'accent': 'American', 'gender': 'M'},
+    'am_echo': {'name': 'Echo', 'accent': 'American', 'gender': 'M'},
+    'am_eric': {'name': 'Eric', 'accent': 'American', 'gender': 'M'},
+    'am_fenrir': {'name': 'Fenrir', 'accent': 'American', 'gender': 'M'},
+    'am_liam': {'name': 'Liam', 'accent': 'American', 'gender': 'M'},
+    'am_michael': {'name': 'Michael', 'accent': 'American', 'gender': 'M'},
+    'am_onyx': {'name': 'Onyx', 'accent': 'American', 'gender': 'M'},
+    'am_puck': {'name': 'Puck', 'accent': 'American', 'gender': 'M'},
+    'am_santa': {'name': 'Santa', 'accent': 'American', 'gender': 'M'},
+    'bf_alice': {'name': 'Alice', 'accent': 'British', 'gender': 'F'},
+    'bf_emma': {'name': 'Emma', 'accent': 'British', 'gender': 'F'},
+    'bf_isabella': {'name': 'Isabella', 'accent': 'British', 'gender': 'F'},
+    'bf_lily': {'name': 'Lily', 'accent': 'British', 'gender': 'F'},
+    'bm_daniel': {'name': 'Daniel', 'accent': 'British', 'gender': 'M'},
+    'bm_fable': {'name': 'Fable', 'accent': 'British', 'gender': 'M'},
+    'bm_george': {'name': 'George', 'accent': 'British', 'gender': 'M'},
+    'bm_lewis': {'name': 'Lewis', 'accent': 'British', 'gender': 'M'},
+}
+
+# Initialize TTS pipeline globally
+tts_pipeline = KPipeline(lang_code='a')
 
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
@@ -252,6 +291,51 @@ def view_topic(topic_id):
     except Exception as e:
         flash('Error loading topic')
         return redirect(url_for('knowledge'))
+
+@app.route('/api/voices', methods=['GET'])
+def get_voices():
+    return jsonify({
+        'voices': VOICES,
+        'default': 'af_heart'  # Default voice
+    })
+
+@app.route('/api/tts', methods=['POST'])
+def generate_tts():
+    try:
+        data = request.json
+        text = data.get('text')
+        voice = data.get('voice', 'af_heart')  # Default to af_heart if not specified
+        
+        if not text:
+            return jsonify({"error": "Missing text"}), 400
+            
+        if voice not in VOICES:
+            return jsonify({"error": "Invalid voice"}), 400
+
+        # Generate audio using Kokoro
+        audio_data = None
+        for _, _, audio in tts_pipeline(text, voice=voice):
+            audio_data = audio
+            break  # We only need the first generation
+            
+        if audio_data is None:
+            return jsonify({"error": "Failed to generate audio"}), 500
+            
+        # Convert numpy array to WAV bytes
+        wav_buffer = io.BytesIO()
+        sf.write(wav_buffer, audio_data, 24000, format='WAV')
+        wav_buffer.seek(0)
+        
+        # Return WAV file
+        return send_file(
+            wav_buffer,
+            mimetype='audio/wav',
+            as_attachment=True,
+            download_name='tts.wav'
+        )
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001) 
