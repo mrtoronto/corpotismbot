@@ -52,4 +52,18 @@
     background-color: #f8d7da;
     border-color: #f5c6cb;
     color: #721c24;
+}
+
+@media (max-width: 640px) {
+    .container {
+        padding: 8px;
+    }
+    .login-form {
+        margin: 20px auto;
+        padding: 10px;
+    }
+    .btn {
+        padding: 8px 12px;
+        font-size: 0.95rem;
+    }
 } 

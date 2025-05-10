@@ -10,28 +10,28 @@
 {% block content %}
     <div class="min-h-screen">
         <!-- Main Content -->
-        <main class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-            <div class="bg-white rounded-lg shadow p-8">
-                <h2 class="text-3xl font-bold text-gray-900 mb-6">Hey there! 👋</h2>
-                <p class="text-xl text-gray-600 mb-8">What would you like to do today?</p>
+        <main class="max-w-7xl mx-auto px-2 py-4 sm:px-4 sm:py-8 lg:px-8">
+            <div class="bg-white rounded-lg shadow p-4 sm:p-8">
+                <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 sm:mb-6">Hey there! 👋</h2>
+                <p class="text-lg sm:text-xl text-gray-600 mb-6 sm:mb-8">What would you like to do today?</p>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <a href="{{ url_for('chat') }}" class="block p-6 bg-blue-50 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                        <h3 class="text-xl font-semibold text-blue-900 mb-2">Chat with Assistant</h3>
-                        <p class="text-blue-700">Start a conversation with our AI assistant to get help and answers to your questions.</p>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
+                    <a href="{{ url_for('chat') }}" class="block p-4 sm:p-6 bg-blue-50 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                        <h3 class="text-lg sm:text-xl font-semibold text-blue-900 mb-1 sm:mb-2">Chat with Assistant</h3>
+                        <p class="text-blue-700 text-sm sm:text-base">Start a conversation with our AI assistant to get help and answers to your questions.</p>
                     </a>
                     
-                    <a href="{{ url_for('knowledge') }}" class="block p-6 bg-green-50 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                        <h3 class="text-xl font-semibold text-green-900 mb-2">Browse Knowledge Base</h3>
-                        <p class="text-green-700">Explore our comprehensive knowledge base to find information and resources.</p>
+                    <a href="{{ url_for('knowledge') }}" class="block p-4 sm:p-6 bg-green-50 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                        <h3 class="text-lg sm:text-xl font-semibold text-green-900 mb-1 sm:mb-2">Browse Knowledge Base</h3>
+                        <p class="text-green-700 text-sm sm:text-base">Explore our comprehensive knowledge base to find information and resources.</p>
                         {% if not session.get('logged_in') %}
-                            <div class="mt-2 text-sm text-gray-500">(Login required to edit)</div>
+                            <div class="mt-2 text-xs sm:text-sm text-gray-500">(Login required to edit)</div>
                         {% endif %}
                     </a>
 
-                    <a href="{{ url_for('todo') }}" class="block p-6 bg-purple-50 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                        <h3 class="text-xl font-semibold text-purple-900 mb-2">Development TODOs</h3>
-                        <p class="text-purple-700">View the upcoming features and improvements planned for the application.</p>
+                    <a href="{{ url_for('todo') }}" class="block p-4 sm:p-6 bg-purple-50 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                        <h3 class="text-lg sm:text-xl font-semibold text-purple-900 mb-1 sm:mb-2">Development TODOs</h3>
+                        <p class="text-purple-700 text-sm sm:text-base">View the upcoming features and improvements planned for the application.</p>
                     </a>
                 </div>
             </div>
