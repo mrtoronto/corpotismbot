@@ -1,9 +1,21 @@
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, session, redirect, url_for, flash
 import json
 import os
 import httpx
+from functools import wraps
+from config import SECRET_KEY, ADMIN_PASSWORD
+from prompts import get_autism_chat_assistant_prompt, get_content_generation_prompt, get_field_specific_prompt
 
 app = Flask(__name__)
+app.secret_key = SECRET_KEY
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('logged_in'):
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 def load_knowledge_base():
     with open('knowledge_base.json', 'r') as f:
@@ -45,6 +57,7 @@ def chat():
     return render_template('chat.html')
 
 @app.route('/knowledge')
+@login_required
 def knowledge():
     return render_template('knowledge.html')
 
@@ -52,11 +65,39 @@ def knowledge():
 def todo():
     return render_template('todo.html')
 
-@app.route('/api/knowledge')
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        password = request.form.get('password')
+        if password == ADMIN_PASSWORD:
+            session['logged_in'] = True
+            return redirect(url_for('index'))
+        else:
+            flash('Invalid password')
+            return redirect(url_for('login'))
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.pop('logged_in', None)
+    return redirect(url_for('index'))
+
+@app.route('/api/knowledge', methods=['GET', 'POST', 'PUT'])
+@login_required
 def get_knowledge():
     try:
-        kb_data = load_knowledge_base()
-        return jsonify(kb_data)
+        if request.method == 'GET':
+            kb_data = load_knowledge_base()
+            return jsonify(kb_data)
+        elif request.method in ['POST', 'PUT']:
+            # Only allow logged in users to modify the knowledge base
+            if not session.get('logged_in'):
+                return jsonify({"error": "Unauthorized"}), 401
+            
+            data = request.json
+            with open('knowledge_base.json', 'w') as f:
+                json.dump(data, f, indent=2)
+            return jsonify({"message": "Knowledge base updated successfully"})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -88,7 +129,7 @@ def chat_endpoint():
                     'messages': [
                         {
                             'role': 'system',
-                            'content': f'You are a helpful assistant with knowledge about autism in corporate settings. Use this context to inform your responses:\n\n{context}'
+                            'content': get_autism_chat_assistant_prompt(context)
                         },
                         {'role': 'user', 'content': message}
                     ]
@@ -101,6 +142,86 @@ def chat_endpoint():
                 
             response_data = response.json()
             return jsonify(response_data)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/knowledge/edit/<topic_id>')
+@login_required
+def edit_knowledge_item(topic_id):
+    try:
+        kb_data = load_knowledge_base()
+        topic = next((t for t in kb_data if t['id'] == topic_id), None)
+        if not topic:
+            flash('Topic not found')
+            return redirect(url_for('knowledge'))
+        return render_template('edit_knowledge.html', topic=topic)
+    except Exception as e:
+        flash('Error loading topic')
+        return redirect(url_for('knowledge'))
+
+@app.route('/api/generate', methods=['POST'])
+@login_required
+def generate_content():
+    try:
+        data = request.json
+        field = data.get('field')  # Which field to generate (title, importance, challenges, etc.)
+        context = data.get('context', {})  # Current topic data for context
+        api_key = data.get('api_key')
+        user_instructions = data.get('user_instructions', '')  # Optional user instructions
+
+        if not field or not api_key:
+            return jsonify({"error": "Missing required fields"}), 400
+
+        # Get current value of the field
+        current_value = context.get(field, "") if isinstance(context, dict) else ""
+        if isinstance(current_value, list):
+            current_value = "\n".join([f"- {item}" for item in current_value])
+
+        # Generate the enhanced prompt with current value, context, and user instructions
+        prompt = get_field_specific_prompt(field, current_value, context, user_instructions)
+
+        # Call OpenAI API
+        with httpx.Client() as client:
+            response = client.post(
+                'https://api.openai.com/v1/chat/completions',
+                headers={
+                    'Authorization': f'Bearer {api_key}',
+                    'Content-Type': 'application/json'
+                },
+                json={
+                    'model': 'gpt-4o-mini',
+                    'messages': [
+                        {'role': 'system', 'content': get_content_generation_prompt()},
+                        {'role': 'user', 'content': prompt}
+                    ]
+                },
+                timeout=30.0
+            )
+            
+            if response.status_code != 200:
+                return jsonify({"error": "Failed to get response from OpenAI"}), 500
+                
+            response_data = response.json()
+            generated_content = response_data['choices'][0]['message']['content']
+
+            # For list fields, split the content into an array
+            if field in ['challenges', 'strategies', 'examples', 'action_steps']:
+                # Split on newlines and clean up any bullet points or numbers
+                content_array = [line.strip().lstrip('•-*1234567890. ') 
+                               for line in generated_content.split('\n')
+                               if line.strip() and not line.strip().startswith('#')]
+                return jsonify({
+                    "current": context.get(field, []),
+                    "generated": content_array,
+                    "is_list": True
+                })
+            else:
+                return jsonify({
+                    "current": context.get(field, ""),
+                    "generated": generated_content.strip(),
+                    "is_list": False
+                })
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500

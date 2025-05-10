@@ -1,25 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Corpotism Knowledge Base</title>
+{% extends "base.html" %}
+
+{% block title %}Knowledge Base - Corpotism Bot{% endblock %}
+
+{% block styles %}
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
-</head>
-<body class="bg-gray-50">
-    <div class="min-h-screen">
-        <!-- Header -->
-        <header class="bg-white shadow-sm">
-            <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
-                <a href="{{ url_for('index') }}"><h1 class="text-2xl font-bold text-gray-900">Corpotism</h1></a>
-                <nav>
-                    <a href="{{ url_for('knowledge') }}" class="text-gray-900 font-semibold px-3 py-2">Knowledge Base</a>
-                    <a href="{{ url_for('chat') }}" class="text-gray-600 hover:text-gray-900 px-3 py-2">Chat</a>
-                </nav>
-            </div>
-        </header>
+{% endblock %}
 
+{% block content %}
+    <div class="min-h-screen">
         <!-- Main Content -->
         <main class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
             <div class="bg-white rounded-lg shadow p-6">
@@ -32,6 +21,11 @@
                         <button id="collapseAll" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors">
                             Collapse All
                         </button>
+                        {% if session.get('logged_in') %}
+                        <button id="addTopic" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors">
+                            Add Topic
+                        </button>
+                        {% endif %}
                     </div>
                 </div>
                 <div id="topics-container" class="space-y-6">
@@ -48,7 +42,11 @@
             </div>
         </main>
     </div>
+{% endblock %}
 
+{% block scripts %}
+    <script>
+        window.isLoggedIn = {{ 'true' if session.get('logged_in') else 'false' }};
+    </script>
     <script src="{{ url_for('static', filename='js/knowledge.js') }}"></script>
-</body>
-</html> 
+{% endblock %} 

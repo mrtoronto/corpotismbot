@@ -1,21 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Corpotism - Welcome</title>
+{% extends "base.html" %}
+
+{% block title %}Corpotism - Welcome{% endblock %}
+
+{% block styles %}
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
-</head>
-<body class="bg-gray-50">
-    <div class="min-h-screen">
-        <!-- Header -->
-        <header class="bg-white shadow-sm">
-            <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
-                <h1 class="text-2xl font-bold text-gray-900">Welcome to Corpotism!</h1>
-            </div>
-        </header>
+{% endblock %}
 
+{% block content %}
+    <div class="min-h-screen">
         <!-- Main Content -->
         <main class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
             <div class="bg-white rounded-lg shadow p-8">
@@ -31,6 +24,9 @@
                     <a href="{{ url_for('knowledge') }}" class="block p-6 bg-green-50 rounded-lg shadow-sm hover:shadow-md transition-shadow">
                         <h3 class="text-xl font-semibold text-green-900 mb-2">Browse Knowledge Base</h3>
                         <p class="text-green-700">Explore our comprehensive knowledge base to find information and resources.</p>
+                        {% if not session.get('logged_in') %}
+                            <div class="mt-2 text-sm text-gray-500">(Login required to edit)</div>
+                        {% endif %}
                     </a>
 
                     <a href="{{ url_for('todo') }}" class="block p-6 bg-purple-50 rounded-lg shadow-sm hover:shadow-md transition-shadow">
@@ -41,5 +37,4 @@
             </div>
         </main>
     </div>
-</body>
-</html> 
+{% endblock %} 

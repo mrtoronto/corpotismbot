@@ -1,0 +1,441 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Knowledge Base Item - Corpotism Bot{% endblock %}
+
+{% block styles %}
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+    <!-- Add Font Awesome for icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+    <div class="min-h-screen">
+        <!-- Main Content -->
+        <main class="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-2xl font-semibold mb-6">Edit Topic</h2>
+                
+                <form id="editForm" class="space-y-6">
+                    <input type="hidden" id="topicId" value="{{ topic.id }}">
+                    <input type="hidden" id="category" value="{{ topic.category }}">
+                    
+                    <div class="relative">
+                        <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
+                        <div class="flex">
+                            <input type="text" id="title" name="title" value="{{ topic.title }}"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <button type="button" class="generate-btn ml-2 mt-1 px-2 text-gray-500 hover:text-blue-500" data-field="title">
+                                <i class="fas fa-wand-magic-sparkles"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    {% if topic.category == 'TOPIC' %}
+                    <div class="relative">
+                        <label for="importance" class="block text-sm font-medium text-gray-700">Importance</label>
+                        <div class="flex">
+                            <input type="text" id="importance" name="importance" value="{{ topic.metadata.importance }}"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <button type="button" class="generate-btn ml-2 mt-1 px-2 text-gray-500 hover:text-blue-500" data-field="importance">
+                                <i class="fas fa-wand-magic-sparkles"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="relative">
+                        <label for="relation_to_parent" class="block text-sm font-medium text-gray-700">Relation to Parent</label>
+                        <div class="flex">
+                            <input type="text" id="relation_to_parent" name="relation_to_parent" value="{{ topic.metadata.relation_to_parent }}"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <button type="button" class="generate-btn ml-2 mt-1 px-2 text-gray-500 hover:text-blue-500" data-field="relation_to_parent">
+                                <i class="fas fa-wand-magic-sparkles"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="relative">
+                        <label for="challenges" class="block text-sm font-medium text-gray-700">Challenges (one per line)</label>
+                        <div class="flex">
+                            <textarea id="challenges" name="challenges" rows="4"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ topic.metadata.challenges | join('\n') }}</textarea>
+                            <button type="button" class="generate-btn ml-2 mt-1 px-2 text-gray-500 hover:text-blue-500" data-field="challenges">
+                                <i class="fas fa-wand-magic-sparkles"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="relative">
+                        <label for="strategies" class="block text-sm font-medium text-gray-700">Strategies (one per line)</label>
+                        <div class="flex">
+                            <textarea id="strategies" name="strategies" rows="4"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ topic.metadata.strategies | join('\n') }}</textarea>
+                            <button type="button" class="generate-btn ml-2 mt-1 px-2 text-gray-500 hover:text-blue-500" data-field="strategies">
+                                <i class="fas fa-wand-magic-sparkles"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="relative">
+                        <label for="examples" class="block text-sm font-medium text-gray-700">Examples (one per line)</label>
+                        <div class="flex">
+                            <textarea id="examples" name="examples" rows="4"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ topic.metadata.examples | join('\n') }}</textarea>
+                            <button type="button" class="generate-btn ml-2 mt-1 px-2 text-gray-500 hover:text-blue-500" data-field="examples">
+                                <i class="fas fa-wand-magic-sparkles"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="relative">
+                        <label for="action_steps" class="block text-sm font-medium text-gray-700">Action Steps (one per line)</label>
+                        <div class="flex">
+                            <textarea id="action_steps" name="action_steps" rows="4"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ topic.metadata.action_steps | join('\n') }}</textarea>
+                            <button type="button" class="generate-btn ml-2 mt-1 px-2 text-gray-500 hover:text-blue-500" data-field="action_steps">
+                                <i class="fas fa-wand-magic-sparkles"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end space-x-3">
+                        <a href="{{ url_for('knowledge') }}" 
+                            class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">
+                            Cancel
+                        </a>
+                        <button type="submit" 
+                            class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for confirming AI-generated content -->
+    <div id="confirmModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center">
+        <div class="bg-white p-6 rounded-lg shadow-xl max-w-4xl w-full mx-4">
+            <h3 class="text-lg font-semibold mb-4">Review Generated Content</h3>
+            
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <!-- Current Version -->
+                <div>
+                    <h4 class="text-sm font-medium text-gray-700 mb-2">Current Version</h4>
+                    <div id="currentContent" class="bg-gray-50 p-3 rounded-md max-h-96 overflow-y-auto"></div>
+                </div>
+                
+                <!-- New Version (Editable) -->
+                <div>
+                    <h4 class="text-sm font-medium text-gray-700 mb-2">New Version (Editable)</h4>
+                    <div id="generatedContentWrapper" class="max-h-96">
+                        <textarea id="generatedContent" 
+                            class="w-full h-full min-h-[200px] p-3 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        ></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-3">
+                <button id="cancelGeneration" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">
+                    Cancel
+                </button>
+                <button id="confirmGeneration" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                    Use This Content
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pre-generation Modal for Instructions -->
+    <div id="preGenerateModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center">
+        <div class="bg-white p-6 rounded-lg shadow-xl max-w-xl w-full mx-4">
+            <h3 class="text-lg font-semibold mb-4">Generation Instructions</h3>
+            <p class="text-sm text-gray-600 mb-4">
+                Optionally, provide specific instructions for how you'd like this content to be generated.
+                Leave blank to use default generation.
+            </p>
+            <textarea id="userInstructions" 
+                class="w-full h-32 p-3 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 mb-4"
+                placeholder="Example: Make it more concise, focus on remote work scenarios, use simpler language, etc."></textarea>
+            <div class="flex justify-end space-x-3">
+                <button id="cancelPreGenerate" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">
+                    Cancel
+                </button>
+                <button id="confirmPreGenerate" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                    Generate
+                </button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        // Store the current field being generated
+        let currentField = null;
+        let currentButton = null;
+        let isListField = false;
+        let pendingGeneration = null;
+
+        // Function to show spinner
+        function showSpinner(button) {
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            button.disabled = true;
+        }
+
+        // Function to restore wand icon
+        function restoreWandIcon(button) {
+            button.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i>';
+            button.disabled = false;
+        }
+
+        // Function to format content for display
+        function formatContent(content, isList) {
+            if (!content) return '(empty)';
+            
+            if (isList && Array.isArray(content)) {
+                return content.map(item => `• ${item}`).join('\n') || '(empty list)';
+            }
+            return content.toString();
+        }
+
+        // Function to get current field value
+        function getCurrentFieldValue(field) {
+            const element = document.getElementById(field);
+            if (!element) return '';
+
+            let value = element.value.trim();
+            
+            // For list fields, split into array
+            if (['challenges', 'strategies', 'examples', 'action_steps'].includes(field)) {
+                return value.split('\n').filter(line => line.trim());
+            }
+            
+            return value;
+        }
+
+        // Function to show modal
+        function showModal(data) {
+            const modal = document.getElementById('confirmModal');
+            const currentContentDiv = document.getElementById('currentContent');
+            const generatedTextarea = document.getElementById('generatedContent');
+            
+            isListField = data.is_list;
+            
+            // Get the current value directly from the field
+            const currentValue = getCurrentFieldValue(currentField);
+            
+            // Format and display current content
+            currentContentDiv.innerHTML = `<pre class="whitespace-pre-wrap font-mono">${formatContent(currentValue, isListField)}</pre>`;
+            
+            // Format and set generated content in editable textarea
+            generatedTextarea.value = formatContent(data.generated, isListField);
+            
+            // Adjust textarea height to match content
+            generatedTextarea.style.height = 'auto';
+            generatedTextarea.style.height = Math.max(200, generatedTextarea.scrollHeight) + 'px';
+            
+            modal.classList.remove('hidden');
+        }
+
+        // Function to hide modal
+        function hideModal() {
+            document.getElementById('confirmModal').classList.add('hidden');
+        }
+
+        // Function to apply generated content
+        function applyContent() {
+            const field = document.getElementById(currentField);
+            const generatedContent = document.getElementById('generatedContent').value;
+            
+            if (!field || !generatedContent) return;
+            
+            if (isListField) {
+                // Split content into array, clean up bullets and whitespace
+                const contentArray = generatedContent
+                    .split('\n')
+                    .map(line => line.trim().replace(/^[•\-\*]\s*/, ''))
+                    .filter(line => line);
+                field.value = contentArray.join('\n');
+            } else {
+                field.value = generatedContent.trim();
+            }
+            
+            // Trigger change event to ensure form state is updated
+            field.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        // Function to show pre-generation modal
+        function showPreGenerateModal() {
+            document.getElementById('preGenerateModal').classList.remove('hidden');
+            document.getElementById('userInstructions').value = '';
+            document.getElementById('userInstructions').focus();
+        }
+
+        // Function to hide pre-generation modal
+        function hidePreGenerateModal() {
+            document.getElementById('preGenerateModal').classList.add('hidden');
+        }
+
+        // Function to perform the actual generation
+        async function performGeneration(userInstructions = '') {
+            try {
+                // Get the API key from local storage or prompt the user
+                let apiKey = localStorage.getItem('openai_api_key');
+                if (!apiKey) {
+                    apiKey = prompt('Please enter your OpenAI API key:');
+                    if (apiKey) {
+                        localStorage.setItem('openai_api_key', apiKey);
+                    } else {
+                        restoreWandIcon(currentButton);
+                        return;
+                    }
+                }
+
+                // Get current topic data for context
+                const topicData = {
+                    id: document.getElementById('topicId').value,
+                    title: document.getElementById('title').value,
+                    category: document.getElementById('category').value,
+                    metadata: {
+                        challenges: getCurrentFieldValue('challenges'),
+                        strategies: getCurrentFieldValue('strategies'),
+                        examples: getCurrentFieldValue('examples'),
+                        action_steps: getCurrentFieldValue('action_steps')
+                    }
+                };
+
+                // Add either importance or relation_to_parent based on category
+                if (topicData.category === 'TOPIC') {
+                    topicData.metadata.importance = getCurrentFieldValue('importance');
+                } else {
+                    topicData.metadata.relation_to_parent = getCurrentFieldValue('relation_to_parent');
+                }
+
+                // Add the current field value to the context at the top level
+                topicData[currentField] = getCurrentFieldValue(currentField);
+
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        field: currentField,
+                        context: topicData,
+                        api_key: apiKey,
+                        user_instructions: userInstructions
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Generation failed');
+                }
+
+                const data = await response.json();
+                showModal(data);
+                restoreWandIcon(currentButton);
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to generate content. Please try again.');
+                restoreWandIcon(currentButton);
+            }
+        }
+
+        // Handle generation buttons
+        document.querySelectorAll('.generate-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                currentField = button.dataset.field;
+                currentButton = button;
+                showSpinner(button);
+                showPreGenerateModal();
+            });
+        });
+
+        // Handle pre-generation modal buttons
+        document.getElementById('confirmPreGenerate').addEventListener('click', () => {
+            const instructions = document.getElementById('userInstructions').value.trim();
+            hidePreGenerateModal();
+            performGeneration(instructions);
+        });
+
+        document.getElementById('cancelPreGenerate').addEventListener('click', () => {
+            hidePreGenerateModal();
+            restoreWandIcon(currentButton);
+        });
+
+        // Handle modal buttons
+        document.getElementById('confirmGeneration').addEventListener('click', () => {
+            applyContent();
+            hideModal();
+        });
+
+        document.getElementById('cancelGeneration').addEventListener('click', hideModal);
+
+        // Handle form submission (existing code)
+        document.getElementById('editForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const topicId = document.getElementById('topicId').value;
+            const category = document.getElementById('category').value;
+            
+            // Build the updated topic object
+            const updatedTopic = {
+                id: topicId,
+                title: document.getElementById('title').value,
+                category: category,
+                metadata: {
+                    challenges: document.getElementById('challenges').value.split('\n').filter(line => line.trim()),
+                    strategies: document.getElementById('strategies').value.split('\n').filter(line => line.trim()),
+                    examples: document.getElementById('examples').value.split('\n').filter(line => line.trim()),
+                    action_steps: document.getElementById('action_steps').value.split('\n').filter(line => line.trim())
+                }
+            };
+
+            // Add either importance or relation_to_parent based on category
+            if (category === 'TOPIC') {
+                updatedTopic.metadata.importance = document.getElementById('importance').value;
+            } else {
+                updatedTopic.metadata.relation_to_parent = document.getElementById('relation_to_parent').value;
+            }
+
+            try {
+                // Fetch the current knowledge base
+                const response = await fetch('/api/knowledge');
+                if (!response.ok) throw new Error('Failed to fetch knowledge base');
+                const knowledgeBase = await response.json();
+
+                // Update the specific topic
+                const index = knowledgeBase.findIndex(t => t.id === topicId);
+                if (index === -1) throw new Error('Topic not found');
+                
+                // Preserve the parent_id
+                updatedTopic.parent_id = knowledgeBase[index].parent_id;
+                
+                // Update the topic in the array
+                knowledgeBase[index] = updatedTopic;
+
+                // Save the entire updated knowledge base
+                const saveResponse = await fetch('/api/knowledge', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(knowledgeBase)
+                });
+
+                if (!saveResponse.ok) throw new Error('Failed to save changes');
+
+                // Redirect back to knowledge base page
+                window.location.href = '{{ url_for("knowledge") }}';
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to save changes. Please try again.');
+            }
+        });
+    </script>
+{% endblock %} 

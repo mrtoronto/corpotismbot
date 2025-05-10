@@ -4,7 +4,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add event listeners for expand/collapse buttons
     document.getElementById('expandAll').addEventListener('click', expandAllTopics);
     document.getElementById('collapseAll').addEventListener('click', collapseAllTopics);
+    
+    if (isLoggedIn) {
+        document.getElementById('addTopic').addEventListener('click', addNewTopic);
+    }
 });
+
+let knowledgeBaseData = []; // Store the complete knowledge base data
 
 async function fetchKnowledgeBase() {
     try {
@@ -13,6 +19,7 @@ async function fetchKnowledgeBase() {
             throw new Error('Failed to fetch knowledge base');
         }
         const data = await response.json();
+        knowledgeBaseData = data; // Store the data
         displayTopics(data);
     } catch (error) {
         console.error('Error:', error);
@@ -46,8 +53,8 @@ function createTopicElement(topic, allTopics) {
     const hasChildren = children.length > 0;
     
     const content = `
-        <div class="topic-header flex items-start justify-between cursor-pointer" onclick="toggleTopic(this)">
-            <div class="flex-grow">
+        <div class="topic-header flex items-start justify-between">
+            <div class="flex-grow cursor-pointer" onclick="toggleTopic(this)">
                 <div class="flex items-center">
                     ${hasChildren ? `
                         <svg class="w-6 h-6 mr-2 transform transition-transform duration-200 expand-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -58,6 +65,20 @@ function createTopicElement(topic, allTopics) {
                 </div>
                 <div class="text-sm text-gray-500 mt-1">${topic.category}</div>
             </div>
+            ${isLoggedIn ? `
+                <div class="flex space-x-2">
+                    <a href="/knowledge/edit/${topic.id}" class="text-blue-500 hover:text-blue-700">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                    </a>
+                    <button onclick="deleteTopic('${topic.id}')" class="text-red-500 hover:text-red-700">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </button>
+                </div>
+            ` : ''}
         </div>
         
         <div class="topic-content mt-4 hidden">
@@ -67,6 +88,13 @@ function createTopicElement(topic, allTopics) {
                 <div class="children-container mt-6 ml-6 space-y-4">
                     ${children.map(child => createTopicElement(child, allTopics).outerHTML).join('')}
                 </div>
+            ` : ''}
+            
+            ${isLoggedIn ? `
+                <button onclick="addChildTopic('${topic.id}')" 
+                    class="mt-4 px-3 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 text-sm">
+                    Add Subtopic
+                </button>
             ` : ''}
         </div>
     `;
@@ -175,4 +203,162 @@ function collapseAllTopics() {
     document.querySelectorAll('.expand-icon').forEach(icon => {
         icon.style.transform = 'rotate(0deg)';
     });
+}
+
+async function addNewTopic() {
+    try {
+        const newTopic = {
+            id: Date.now().toString(),
+            title: "New Topic",
+            category: "TOPIC",
+            parent_id: null,
+            metadata: {
+                importance: "",
+                challenges: [],
+                strategies: [],
+                examples: [],
+                action_steps: []
+            }
+        };
+
+        knowledgeBaseData.push(newTopic);
+        
+        // Save to server
+        const response = await fetch('/api/knowledge', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(knowledgeBaseData)
+        });
+
+        if (!response.ok) throw new Error('Failed to save new topic');
+
+        // Redirect to edit page for the new topic
+        window.location.href = `/knowledge/edit/${newTopic.id}`;
+
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to create new topic. Please try again.');
+    }
+}
+
+async function addChildTopic(parentId) {
+    try {
+        const newTopic = {
+            id: Date.now().toString(),
+            title: "New Subtopic",
+            category: "SUBTOPIC",
+            parent_id: parentId,
+            metadata: {
+                relation_to_parent: "",
+                challenges: [],
+                strategies: [],
+                examples: [],
+                action_steps: []
+            }
+        };
+
+        knowledgeBaseData.push(newTopic);
+        
+        // Save to server
+        const response = await fetch('/api/knowledge', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(knowledgeBaseData)
+        });
+
+        if (!response.ok) throw new Error('Failed to save new subtopic');
+
+        // Redirect to edit page for the new topic
+        window.location.href = `/knowledge/edit/${newTopic.id}`;
+
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to create new subtopic. Please try again.');
+    }
+}
+
+function showDeleteConfirmation(topicId, topicTitle) {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    modal.innerHTML = `
+        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 class="text-xl font-bold text-red-600 mb-4">Confirm Deletion</h3>
+            <p class="text-gray-700 mb-4">
+                Are you sure you want to delete "${topicTitle}"? This action cannot be undone and will also delete all subtopics.
+            </p>
+            <div class="flex justify-end space-x-3">
+                <button onclick="this.closest('.fixed').remove()" 
+                    class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">
+                    Cancel
+                </button>
+                <button onclick="confirmDelete('${topicId}', this)" 
+                    class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
+                    Delete
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+async function confirmDelete(topicId, button) {
+    const modal = button.closest('.fixed');
+    
+    try {
+        // Remove the topic and all its children
+        const removeTopicAndChildren = (id) => {
+            knowledgeBaseData = knowledgeBaseData.filter(topic => {
+                if (topic.id === id) return false;
+                if (topic.parent_id === id) {
+                    removeTopicAndChildren(topic.id);
+                    return false;
+                }
+                return true;
+            });
+        };
+
+        removeTopicAndChildren(topicId);
+        
+        // Save to server
+        const response = await fetch('/api/knowledge', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(knowledgeBaseData)
+        });
+
+        if (!response.ok) throw new Error('Failed to delete topic');
+
+        // Close the modal
+        modal.remove();
+
+        // Show success message
+        const message = document.createElement('div');
+        message.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded shadow-lg z-50';
+        message.textContent = 'Topic deleted successfully';
+        document.body.appendChild(message);
+        setTimeout(() => message.remove(), 3000);
+
+        // Refresh the display
+        displayTopics(knowledgeBaseData);
+
+    } catch (error) {
+        console.error('Error:', error);
+        // Show error in the modal
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'text-red-500 mt-2';
+        errorDiv.textContent = 'Failed to delete topic. Please try again.';
+        button.parentElement.insertBefore(errorDiv, button);
+    }
+}
+
+function deleteTopic(topicId) {
+    const topic = knowledgeBaseData.find(t => t.id === topicId);
+    if (!topic) return;
+    showDeleteConfirmation(topicId, topic.title);
 } 
