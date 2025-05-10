@@ -25,6 +25,7 @@ class Chat {
         this.newChatBtn = document.getElementById('new-chat-btn');
         this.currentChatGuid = document.getElementById('current-chat-guid');
         this.deleteChatBtn = document.getElementById('delete-chat-btn');
+        this.deleteChatBtnMobile = document.getElementById('delete-chat-btn-mobile');
         // Set initial API key if exists
         if (this.apiKey) {
             this.apiKeyInput.value = '********';
@@ -54,6 +55,9 @@ class Chat {
         }
         if (this.deleteChatBtn) {
             this.deleteChatBtn.addEventListener('click', () => this.deleteCurrentChat());
+        }
+        if (this.deleteChatBtnMobile) {
+            this.deleteChatBtnMobile.addEventListener('click', () => this.deleteCurrentChat());
         }
     }
 
@@ -119,10 +123,15 @@ class Chat {
         if (this.currentChatGuid) {
             this.currentChatGuid.textContent = `Chat: ${this.currentChatId}`;
         }
-        // Disable delete button if only one chat
+        // Disable delete buttons if only one chat
+        const onlyOne = Object.keys(this.chats).length <= 1;
         if (this.deleteChatBtn) {
-            this.deleteChatBtn.disabled = Object.keys(this.chats).length <= 1;
-            this.deleteChatBtn.classList.toggle('opacity-50', this.deleteChatBtn.disabled);
+            this.deleteChatBtn.disabled = onlyOne;
+            this.deleteChatBtn.classList.toggle('opacity-50', onlyOne);
+        }
+        if (this.deleteChatBtnMobile) {
+            this.deleteChatBtnMobile.disabled = onlyOne;
+            this.deleteChatBtnMobile.classList.toggle('opacity-50', onlyOne);
         }
     }
 

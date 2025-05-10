@@ -11,14 +11,15 @@
     <div class="min-h-screen">
         <!-- Main Content -->
         <main class="max-w-4xl mx-auto px-2 py-4 sm:px-6 lg:px-8">
-            <div class="bg-white rounded-lg shadow flex flex-col md:flex-row">
-                <!-- Sidebar for chat history -->
-                <aside class="w-full md:w-64 border-b md:border-b-0 md:border-r bg-gray-50 flex flex-col" id="sidebar">
+            <div class="bg-white rounded-lg shadow flex flex-col md:flex-row relative">
+                <!-- Mobile sidebar overlay and sidebar (siblings to chat area) -->
+                <div id="mobile-sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-40 z-30 hidden md:hidden"></div>
+                <aside id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-gray-50 border-r z-40 transform -translate-x-full transition-transform duration-200 md:static md:translate-x-0 md:w-64 md:h-auto md:flex md:flex-col">
                     <div class="p-4 border-b flex items-center justify-between md:justify-between">
                         <span class="font-semibold text-lg">Chats</span>
-                        <button id="toggle-sidebar" class="md:hidden text-gray-600 focus:outline-none" aria-label="Toggle chat list">
+                        <button id="close-sidebar" class="md:hidden text-gray-600 focus:outline-none" aria-label="Close chat list">
                             <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
                         </button>
                         <button id="new-chat-btn" class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-xs ml-2">New</button>
@@ -28,12 +29,22 @@
                     </ul>
                 </aside>
                 <!-- Chat area -->
-                <div class="flex-1 flex flex-col h-[600px] min-h-[400px]">
-                    <!-- Chat header -->
+                <div class="flex-1 flex flex-col h-[600px] min-h-[400px] relative">
+                    <!-- Chat header with hamburger for mobile -->
                     <div class="flex items-center justify-between border-b px-3 sm:px-6 py-2 sm:py-3 bg-gray-50">
-                        <div class="font-mono text-xs text-gray-600 truncate" id="current-chat-guid">Chat: </div>
-                        <button id="delete-chat-btn" class="text-red-500 hover:text-red-700 text-xs px-2 py-1 rounded border border-red-200 bg-red-50">Delete</button>
+                        <div class="flex items-center space-x-2">
+                            <button id="open-chat-list" class="md:hidden text-gray-600 focus:outline-none mr-2" aria-label="Open chat list">
+                                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                                </svg>
+                            </button>
+                            <div class="font-mono text-xs text-gray-600 truncate" id="current-chat-guid">Chat: </div>
+                        </div>
+                        <!-- Delete button: visible in header on md+, hidden on mobile -->
+                        <button id="delete-chat-btn" class="hidden md:inline-block text-red-500 hover:text-red-700 text-xs px-2 py-1 rounded border border-red-200 bg-red-50">Delete</button>
                     </div>
+                    <!-- Delete button: visible below header on mobile only -->
+                    <button id="delete-chat-btn-mobile" class="md:hidden block w-full text-red-500 hover:text-red-700 text-xs px-2 py-2 rounded border border-red-200 bg-red-50 mb-2">Delete Chat</button>
                     <div id="chat-messages" class="flex-1 p-2 sm:p-6 overflow-y-auto space-y-4">
                         <div class="text-center text-gray-500" id="welcome-message">
                             Enter your OpenAI API key to start chatting!
@@ -80,21 +91,31 @@
 {% block scripts %}
     <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
     <script>
-    // Mobile sidebar toggle
+    // Mobile sidebar toggle and overlay logic
     document.addEventListener('DOMContentLoaded', function() {
         const sidebar = document.getElementById('sidebar');
-        const toggleBtn = document.getElementById('toggle-sidebar');
-        if (toggleBtn && sidebar) {
-            toggleBtn.addEventListener('click', function() {
-                sidebar.classList.toggle('hidden');
-            });
+        const openBtn = document.getElementById('open-chat-list');
+        const closeBtn = document.getElementById('close-sidebar');
+        const overlay = document.getElementById('mobile-sidebar-overlay');
+        function openSidebar() {
+            sidebar.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
         }
-        // Hide sidebar by default on mobile
+        function closeSidebar() {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        }
+        if (openBtn) openBtn.addEventListener('click', openSidebar);
+        if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+        if (overlay) overlay.addEventListener('click', closeSidebar);
+        // Always show sidebar on md+
         function handleResize() {
-            if (window.innerWidth < 768) {
-                sidebar.classList.add('hidden');
+            if (window.innerWidth >= 768) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.add('hidden');
             } else {
-                sidebar.classList.remove('hidden');
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
             }
         }
         window.addEventListener('resize', handleResize);
