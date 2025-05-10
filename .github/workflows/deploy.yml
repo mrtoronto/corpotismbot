@@ -34,6 +34,9 @@ jobs:
             git clean -fd &&
             git pull origin main &&
             
+            # Clear system cache to free up memory
+            sudo sh -c 'echo 3 > /proc/sys/vm/drop_caches' &&
+            
             # Install Poetry if not present and add to PATH
             if ! command -v poetry &> /dev/null; then
               curl -sSL https://install.python-poetry.org | python3 - &&
@@ -46,8 +49,8 @@ jobs:
             # Configure Poetry to use venv in project directory
             poetry config virtualenvs.in-project true --local
             
-            # Install dependencies
-            poetry install --only main --no-interaction --no-ansi &&
+            # Install dependencies with memory optimizations
+            PYTHONMALLOC=debug poetry install --only main --no-interaction --no-ansi --no-cache-dir &&
             
             # Restart service
             ./scripts/graceful_restart.sh

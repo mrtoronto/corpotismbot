@@ -5,12 +5,12 @@ description = "Corpotism Bot"
 authors = ["Matt <matt@corpotism.com>"]
 
 [tool.poetry.dependencies]
-python = ">=3.12,<3.13"
+python = ">=3.11,<3.13"
 flask = "3.0.2"
 werkzeug = "3.0.1"
 httpx = "0.28.1"
 flask-login = "0.6.3"
-kokoro = "^0.9.4"
+kokoro = {version = "^0.9.4", extras = ["cpu"]}
 soundfile = "*"
 gunicorn = "^21.2.0"
 
